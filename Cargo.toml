@@ -11,7 +11,11 @@ publish     = true
 version     = "0.1.0"
 
 [features]
-main = []
+default = ["opengl"]
+
+cross_term = ["bracket-terminal/cross_term"]
+curses     = ["bracket-terminal/curses"]
+opengl     = ["bracket-terminal/opengl"]
 
 [dependencies]
 bracket-terminal = "^0.8"
