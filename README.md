@@ -2,6 +2,15 @@
 
 ![](https://github.com/lecoqjacob/bracket-state-machine/workflows/Rust/badge.svg)
 
+## Compatible Bracket Terminal versions
+
+Compatibility of `bevy_kira_audio` versions:
+| `bracket-state-machine` | `bracket-terminal`  |
+|  :--                    |  :--                |
+| `bracket-main`          | `main`              |
+| `main`                  | `0.8.5`             |
+
+
 ## Using `bracket-state-machine`
 
 In your `Cargo.toml` file, include:
