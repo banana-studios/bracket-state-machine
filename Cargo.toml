@@ -1,0 +1,17 @@
+[package]
+authors     = ["Jacob LeCoq <lecoqjacob@gmail.com>"]
+categories  = ["game-engines"]
+description = "State management library for bracket-lib terminal"
+edition     = "2021"
+homepage    = "https://github.com/lecoqjacob/bracket-state-machine"
+keywords    = ["gamedev", "bracket-lib"]
+license     = "MIT"
+name        = "bracket-state-machine"
+publish     = true
+version     = "0.1.0"
+
+[features]
+main = []
+
+[dependencies]
+bracket-terminal = "^0.8"
