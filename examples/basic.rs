@@ -33,6 +33,7 @@ impl State for TitleState {
             if key == VirtualKeyCode::Escape {
                 return (Some(Transition::Terminate), TransitionUpdate::Immediate);
             }
+
             if key == VirtualKeyCode::Space {
                 return (
                     Some(Transition::Push(Box::new(PausedState))),

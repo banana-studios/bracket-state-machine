@@ -11,7 +11,13 @@ publish     = true
 version     = "0.1.0"
 
 [features]
-main = []
+default = ["opengl"]
+
+cross_term = ["bracket-terminal/cross_term"]
+curses     = ["bracket-terminal/curses"]
+low_cpu    = ["bracket-terminal/low_cpu"]
+opengl     = ["bracket-terminal/opengl"]
+webgpu     = ["bracket-terminal/webgpu"]
 
 [dependencies]
 bracket-terminal = { git = "https://github.com/amethyst/bracket-lib" }
