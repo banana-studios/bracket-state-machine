@@ -1,11 +1,24 @@
+use crate::state_machine::Transition;
 use bracket_lib::prelude::*;
 use std::time::Duration;
 
-pub type StateTransition<S, R> = Option<Transition<S, R>>;
+pub type StateTransition<S, R> = Transition<S, R>;
+
+/// Desired behavior for the next update, to be returned from an `update` call.
+#[derive(Debug)]
+pub enum TransitionUpdate {
+    /// Run the next update immediately, without waiting for the next frame.
+    Immediate,
+    /// Wait a frame before the next update; this will likely draw the mode for a frame.
+    Update,
+    /// Wait for an input event before the next update; this will likely draw the mode before
+    /// waiting.
+    WaitForEvent,
+}
 
 pub trait State {
     type State: ?Sized;
-    type StateResult: ?Sized;
+    type StateResult;
 
     #[must_use = "it may trigger a state change"]
     fn update(
@@ -35,34 +48,4 @@ pub trait State {
     fn is_transparent(&self) -> bool {
         true
     }
-}
-
-pub enum Transition<S, R> {
-    Pop(R),
-    Terminate,
-    Push(Box<dyn State<State = S, StateResult = R>>),
-    Switch(Box<dyn State<State = S, StateResult = R>>),
-}
-
-/// Desired behavior for the next update, to be returned from an `update` call.
-#[derive(Debug)]
-pub enum TransitionUpdate {
-    /// Run the next update immediately, without waiting for the next frame.
-    Immediate,
-    /// Wait a frame before the next update; this will likely draw the mode for a frame.
-    Update,
-    /// Wait for an input event before the next update; this will likely draw the mode before
-    /// waiting.
-    WaitForEvent,
-}
-
-/// Return value for `update` callback sent into [run] that controls the main event loop.
-pub enum RunControl {
-    // Quit the run loop.
-    Quit,
-    // Call `update` again next frame.
-    Update,
-    // Wait for an input event before the next update; this will likely draw the mode before
-    // waiting.
-    WaitForEvent,
 }

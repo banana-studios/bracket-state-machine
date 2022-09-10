@@ -1,6 +1,25 @@
-use crate::state::{RunControl, State, Transition, TransitionUpdate};
+use crate::state::{State, TransitionUpdate};
 use bracket_lib::prelude::*;
 use std::time::Duration;
+
+/// Return value for `update` callback sent into [run] that controls the main event loop.
+pub enum RunControl {
+    // Quit the run loop.
+    Quit,
+    // Call `update` again next frame.
+    Update,
+    // Wait for an input event before the next update; this will likely draw the mode before
+    // waiting.
+    WaitForEvent,
+}
+
+pub enum Transition<S, R> {
+    Stay,
+    Pop(R),
+    Terminate,
+    Push(Box<dyn State<State = S, StateResult = R>>),
+    Switch(Box<dyn State<State = S, StateResult = R>>),
+}
 
 pub struct StateMachine<S, R> {
     state: S,
@@ -45,22 +64,21 @@ impl<S, R> StateMachine<S, R> {
             };
 
             self.pop_result = None;
-            if let Some(transition) = transition {
-                match transition {
-                    Transition::Switch(state) => {
-                        self.states.pop();
-                        self.states.push(state);
-                    }
-                    Transition::Push(state) => {
-                        self.states.push(state);
-                    }
-                    Transition::Pop(state_result) => {
-                        self.pop_result = Some(state_result);
-                        self.states.pop();
-                    }
-                    Transition::Terminate => {
-                        self.states.clear();
-                    }
+            match transition {
+                Transition::Stay => {}
+                Transition::Switch(state) => {
+                    self.states.pop();
+                    self.states.push(state);
+                }
+                Transition::Push(state) => {
+                    self.states.push(state);
+                }
+                Transition::Pop(state_result) => {
+                    self.pop_result = Some(state_result);
+                    self.states.pop();
+                }
+                Transition::Terminate => {
+                    self.states.clear();
                 }
             }
 

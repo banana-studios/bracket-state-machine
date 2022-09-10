@@ -33,17 +33,18 @@ impl State for TitleState {
     ) -> TransitionResult {
         if let Some(key) = term.key {
             if key == VirtualKeyCode::Escape {
-                return (Some(Transition::Terminate), TransitionUpdate::Immediate);
+                return (Transition::Terminate, TransitionUpdate::Immediate);
             }
+
             if key == VirtualKeyCode::Space {
                 return (
-                    Some(Transition::Push(Box::new(PausedState))),
+                    Transition::Push(Box::new(PausedState)),
                     TransitionUpdate::Update,
                 );
             }
         }
 
-        (None, TransitionUpdate::Update)
+        (Transition::Stay, TransitionUpdate::Update)
     }
 
     fn render(&self, term: &mut BTerm, state: &Self::State, active: bool) {
@@ -83,15 +84,13 @@ impl State for PausedState {
         if let Some(key) = term.key {
             if key == VirtualKeyCode::Space {
                 return (
-                    Some(Transition::Pop(ModeResult::PausedResult(
-                        PausedResult::Resume,
-                    ))),
+                    Transition::Pop(ModeResult::PausedResult(PausedResult::Resume)),
                     TransitionUpdate::Update,
                 );
             }
         }
 
-        (None, TransitionUpdate::Update)
+        (Transition::Stay, TransitionUpdate::Update)
     }
 
     fn render(&self, term: &mut BTerm, state: &Self::State, active: bool) {

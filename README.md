@@ -4,7 +4,7 @@
 
 ## Compatible Bracket Terminal versions
 
-Compatibility of `bevy_kira_audio` versions:
+Compatibility of `bevy_state_machine` versions:
 | `bracket-state-machine` | `bracket-terminal`  |
 |  :--                    |  :--                |
 | `bracket-main`          | `main`              |
