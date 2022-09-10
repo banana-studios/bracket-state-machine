@@ -15,14 +15,14 @@ jobs:
     - name: Install alsa and udev
       run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
       if: matrix.os == 'ubuntu-latest'
-    
+   
     - name: Build
       run: cargo build --verbose --all
     
     - name: Run tests
       run: 
         cargo test --verbose --all
-
+    
     - name: Check examples
       if: matrix.os != 'windows-latest'
       run: |
