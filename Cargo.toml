@@ -18,4 +18,4 @@ serde    = ["bracket-lib/serde"]
 threaded = ["bracket-lib/threaded"]
 
 [dependencies]
-bracket-lib = "^0.8"
+bracket-lib = { git = "https://github.com/lecoqjacob/bracket-lib", branch = "custom" }
