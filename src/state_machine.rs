@@ -1,5 +1,5 @@
 use crate::state::*;
-use bracket_terminal::prelude::*;
+use bracket_lib::prelude::*;
 use std::time::Duration;
 
 #[derive(Copy, Clone)]

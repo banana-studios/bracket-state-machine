@@ -1,5 +1,5 @@
 use crate::state_machine::DeltaTime;
-use bracket_terminal::prelude::*;
+use bracket_lib::prelude::*;
 
 pub type StateTransition<S, R> = Option<Transition<S, R>>;
 

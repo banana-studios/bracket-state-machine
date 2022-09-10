@@ -1,5 +1,5 @@
+use bracket_lib::prelude::*;
 use bracket_state_machine::prelude::*;
-use bracket_terminal::prelude::*;
 
 pub type TransitionResult = (StateTransition<Game, ModeResult>, TransitionUpdate);
 
