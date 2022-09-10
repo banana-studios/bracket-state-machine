@@ -7,7 +7,6 @@ pub type TransitionResult = (StateTransition<Game, ModeResult>, TransitionContro
 
 #[derive(Default)]
 struct TitleState;
-struct PausedState;
 
 #[derive(Clone)]
 pub enum TitleResult {
@@ -84,6 +83,8 @@ impl State for TitleState {
         true
     }
 }
+
+struct PausedState;
 
 #[derive(Clone)]
 pub enum PausedResult {
