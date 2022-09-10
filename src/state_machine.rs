@@ -1,24 +1,6 @@
-use crate::state::*;
+use crate::state::{RunControl, State, Transition, TransitionUpdate};
 use bracket_lib::prelude::*;
 use std::time::Duration;
-
-#[derive(Copy, Clone)]
-pub struct DeltaTime(Duration);
-
-impl DeltaTime {
-    pub fn from_millis(millis: f32) -> Self {
-        // TODO
-        DeltaTime(Duration::from_millis(millis as u64))
-    }
-}
-
-impl std::ops::Deref for DeltaTime {
-    type Target = Duration;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 pub struct StateMachine<S, R> {
     state: S,
@@ -44,13 +26,13 @@ impl<S, R> StateMachine<S, R> {
         }
     }
 
-    pub fn clear_consoles(&mut self, term: &mut BTerm) {
+    fn clear_consoles(&mut self, term: &mut BTerm) {
         if let Some(top_state) = self.states.last_mut() {
-            top_state.clear_consoles(&self.state, term);
+            top_state.clear(&self.state, term);
         }
     }
 
-    pub fn tick(&mut self, ctx: &mut BTerm) -> RunControl {
+    fn internal_tick(&mut self, ctx: &mut BTerm) -> RunControl {
         while !self.states.is_empty() {
             let (transition, transition_update) = {
                 let top_mode = self.states.last_mut().unwrap();
@@ -58,7 +40,7 @@ impl<S, R> StateMachine<S, R> {
                     ctx,
                     &self.state,
                     &self.pop_result,
-                    DeltaTime::from_millis(ctx.frame_time_ms),
+                    Duration::from_millis(ctx.frame_time_ms as u64),
                 )
             };
 
@@ -97,11 +79,11 @@ impl<S, R> StateMachine<S, R> {
 
                 // Draw non-top modes with `active` set to `false`.
                 for mode in self.states.iter_mut().skip(usize::max(draw_from, 1)) {
-                    mode.draw(ctx, &self.state, false);
+                    mode.render(ctx, &self.state, false);
                 }
 
                 // Draw top mode with `active` set to `true`.
-                self.states[top].draw(ctx, &self.state, true);
+                self.states[top].render(ctx, &self.state, true);
 
                 render_draw_buffer(ctx).expect("Render draw buffer error");
             }
@@ -119,20 +101,11 @@ impl<S, R> StateMachine<S, R> {
 
 impl<S: 'static, R: 'static> GameState for StateMachine<S, R> {
     fn tick(&mut self, ctx: &mut BTerm) {
-        println!("tick");
         if ctx.quitting {
             ctx.quit();
         }
 
-        if !self.wait_for_event {
-            self.active_mouse_pos = ctx.mouse_point();
-
-            match self.tick(ctx) {
-                RunControl::Update => {}
-                RunControl::Quit => ctx.quit(),
-                RunControl::WaitForEvent => self.wait_for_event = true,
-            }
-        } else {
+        if self.wait_for_event {
             let new_mouse = ctx.mouse_point();
 
             // Handle Keys & Mouse Clicks
@@ -144,6 +117,14 @@ impl<S: 'static, R: 'static> GameState for StateMachine<S, R> {
             if new_mouse != self.active_mouse_pos {
                 self.wait_for_event = false;
                 self.active_mouse_pos = new_mouse;
+            }
+        } else {
+            self.active_mouse_pos = ctx.mouse_point();
+
+            match self.internal_tick(ctx) {
+                RunControl::Update => {}
+                RunControl::Quit => ctx.quit(),
+                RunControl::WaitForEvent => self.wait_for_event = true,
             }
         }
     }

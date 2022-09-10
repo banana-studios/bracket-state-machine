@@ -1,5 +1,7 @@
+use std::time::Duration;
+
+use bracket_lib::prelude::*;
 use bracket_state_machine::prelude::*;
-use bracket_terminal::prelude::*;
 
 pub type TransitionResult = (StateTransition<Game, ModeResult>, TransitionUpdate);
 
@@ -27,7 +29,7 @@ impl State for TitleState {
         term: &mut BTerm,
         state: &Self::State,
         _pop_result: &Option<Self::StateResult>,
-        dt: DeltaTime,
+        dt: Duration,
     ) -> TransitionResult {
         if let Some(key) = term.key {
             if key == VirtualKeyCode::Escape {
@@ -44,11 +46,11 @@ impl State for TitleState {
         (None, TransitionUpdate::Update)
     }
 
-    fn draw(&self, term: &mut BTerm, state: &Self::State, active: bool) {
+    fn render(&self, term: &mut BTerm, state: &Self::State, active: bool) {
         term.print(1, 1, "Hello, world!");
     }
 
-    fn clear_consoles(&self, _state: &Self::State, _term: &mut BTerm) {
+    fn clear(&self, _state: &Self::State, _term: &mut BTerm) {
         BACKEND_INTERNAL
             .lock()
             .consoles
@@ -76,7 +78,7 @@ impl State for PausedState {
         term: &mut BTerm,
         state: &Self::State,
         _pop_result: &Option<ModeResult>,
-        _dt: DeltaTime,
+        _dt: Duration,
     ) -> TransitionResult {
         if let Some(key) = term.key {
             if key == VirtualKeyCode::Space {
@@ -92,7 +94,7 @@ impl State for PausedState {
         (None, TransitionUpdate::Update)
     }
 
-    fn draw(&self, term: &mut BTerm, state: &Self::State, active: bool) {
+    fn render(&self, term: &mut BTerm, state: &Self::State, active: bool) {
         term.print_centered(0, "PAUSED");
     }
 }
