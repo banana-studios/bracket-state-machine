@@ -1,9 +1,9 @@
-use std::time::Duration;
+use std::{fmt::format, time::Duration};
 
 use bracket_lib::prelude::*;
 use bracket_state_machine::prelude::*;
 
-pub type TransitionResult = (StateTransition<Game, ModeResult>, TransitionUpdate);
+pub type TransitionResult = (StateTransition<Game, ModeResult>, TransitionControl);
 
 #[derive(Default)]
 struct TitleState;
@@ -27,28 +27,49 @@ impl State for TitleState {
     fn update(
         &mut self,
         term: &mut BTerm,
-        state: &Self::State,
+        state: &mut Self::State,
         _pop_result: &Option<Self::StateResult>,
         dt: Duration,
     ) -> TransitionResult {
         if let Some(key) = term.key {
-            if key == VirtualKeyCode::Escape {
-                return (Transition::Terminate, TransitionUpdate::Immediate);
+            match key {
+                VirtualKeyCode::Escape => {
+                    return (StateTransition::Terminate, TransitionControl::Update);
+                }
+                VirtualKeyCode::Space => {
+                    return (
+                        StateTransition::Push(Box::new(PausedState)),
+                        TransitionControl::Update,
+                    );
+                }
+                VirtualKeyCode::Up => {
+                    state.num += 1;
+                }
+                VirtualKeyCode::Down => {
+                    state.num -= 1;
+                }
+                _ => {}
             }
 
             if key == VirtualKeyCode::Space {
                 return (
                     Transition::Push(Box::new(PausedState)),
-                    TransitionUpdate::Update,
+                    TransitionControl::Update,
                 );
             }
         }
 
-        (Transition::Stay, TransitionUpdate::Update)
+        (Transition::Stay, TransitionControl::Update)
     }
 
     fn render(&self, term: &mut BTerm, state: &Self::State, active: bool) {
-        term.print(1, 1, "Hello, world!");
+        term.print(
+            1,
+            2,
+            "Press [UP] to increment counter and [DOWN] to decrement counter.",
+        );
+        term.print(1, 4, "Press [ESC] to close & [SPACE] to transition");
+        term.print(1, 6, format!("State: {:?}", state));
     }
 
     fn clear(&self, _state: &Self::State, _term: &mut BTerm) {
@@ -77,7 +98,7 @@ impl State for PausedState {
     fn update(
         &mut self,
         term: &mut BTerm,
-        state: &Self::State,
+        state: &mut Self::State,
         _pop_result: &Option<ModeResult>,
         _dt: Duration,
     ) -> TransitionResult {
@@ -85,28 +106,32 @@ impl State for PausedState {
             if key == VirtualKeyCode::Space {
                 return (
                     Transition::Pop(ModeResult::PausedResult(PausedResult::Resume)),
-                    TransitionUpdate::Update,
+                    TransitionControl::Update,
                 );
             }
         }
 
-        (Transition::Stay, TransitionUpdate::Update)
+        (Transition::Stay, TransitionControl::Update)
     }
 
     fn render(&self, term: &mut BTerm, state: &Self::State, active: bool) {
-        term.print_centered(0, "PAUSED");
+        term.print_centered(0, format!("PAUSED {:?}", state));
     }
 }
 
-pub struct Game {}
+#[derive(Debug)]
+pub struct Game {
+    pub num: i32,
+}
 
 fn main() -> BError {
     let context = BTermBuilder::simple80x50()
         .with_title("State Machine Sample")
+        .with_dimensions(100, 70)
         .with_fps_cap(24.0)
         .build()
         .expect("failed to build a BTerm");
 
-    let machine = StateMachine::new(Game {}, TitleState::default());
+    let machine = StateMachine::new(Game { num: 0 }, TitleState::default());
     main_loop(context, machine)
 }
