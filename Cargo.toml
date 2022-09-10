@@ -11,11 +11,11 @@ publish     = true
 version     = "0.1.0"
 
 [features]
-default = ["opengl"]
-
-cross_term = ["bracket-terminal/cross_term"]
-curses     = ["bracket-terminal/curses"]
-opengl     = ["bracket-terminal/opengl"]
+crssterm = ["bracket-lib/crossterm"]
+curses   = ["bracket-lib/curses"]
+opengl   = ["bracket-lib/opengl"]
+serde    = ["bracket-lib/serde"]
+threaded = ["bracket-lib/threaded"]
 
 [dependencies]
-bracket-terminal = "^0.8"
+bracket-lib = "^0.8"
