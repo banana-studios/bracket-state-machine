@@ -144,11 +144,11 @@ impl<S, R> StateMachine<S, R> {
 
                 // Draw non-top modes with `active` set to `false`.
                 for mode in self.states.iter_mut().skip(usize::max(draw_from, 1)) {
-                    mode.render(ctx, &self.state, false);
+                    mode.render(ctx, &mut self.state, false);
                 }
 
                 // Draw top mode with `active` set to `true`.
-                self.states[top].render(ctx, &self.state, true);
+                self.states[top].render(ctx, &mut self.state, true);
 
                 render_draw_buffer(ctx).expect("Render draw buffer error");
             }
