@@ -17,12 +17,13 @@ pub trait State {
         dt: Duration,
     ) -> StateReturn<Self::State, Self::StateResult>
     where
-        Self::State: std::marker::Sized,
-        Self::StateResult: std::marker::Sized;
+        Self::State: std::marker::Sized;
 
-    fn render(&self, term: &mut BTerm, state: &Self::State, active: bool);
+    fn render(&mut self, term: &mut BTerm, state: &mut Self::State, active: bool);
 
-    fn clear(&self, _state: &Self::State, _term: &mut BTerm) {
+    #[allow(unused_variables)]
+    #[inline]
+    fn clear(&self, state: &Self::State, term: &mut BTerm) {
         BACKEND_INTERNAL
             .lock()
             .consoles
@@ -30,6 +31,7 @@ pub trait State {
             .for_each(|c| c.console.cls());
     }
 
+    #[inline]
     fn is_transparent(&self) -> bool {
         true
     }
