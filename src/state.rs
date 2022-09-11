@@ -35,6 +35,13 @@ pub trait State {
     fn is_transparent(&self) -> bool {
         true
     }
+
+    fn boxed(self) -> Box<dyn State<State = Self::State, StateResult = Self::StateResult>>
+    where
+        Self: Sized + 'static,
+    {
+        Box::new(self)
+    }
 }
 
 /// Return value for `update` callback sent into [run] that controls the main event loop.

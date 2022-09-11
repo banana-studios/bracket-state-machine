@@ -37,7 +37,7 @@ impl State for TitleState {
                 }
                 VirtualKeyCode::Space => {
                     return (
-                        StateTransition::Push(Box::new(PausedState)),
+                        StateTransition::Push(PausedState.boxed()),
                         TransitionControl::Update,
                     );
                 }
@@ -61,7 +61,7 @@ impl State for TitleState {
         (Transition::Stay, TransitionControl::Update)
     }
 
-    fn render(&self, term: &mut BTerm, state: &Self::State, active: bool) {
+    fn render(&mut self, term: &mut BTerm, state: &mut Self::State, active: bool) {
         term.print(
             1,
             2,
@@ -115,7 +115,7 @@ impl State for PausedState {
         (Transition::Stay, TransitionControl::Update)
     }
 
-    fn render(&self, term: &mut BTerm, state: &Self::State, active: bool) {
+    fn render(&mut self, term: &mut BTerm, state: &mut Self::State, active: bool) {
         term.print_centered(0, format!("PAUSED {:?}", state));
     }
 }
