@@ -14,7 +14,6 @@ pub trait State {
         term: &mut BTerm,
         state: &mut Self::State,
         pop_result: &Option<Self::StateResult>,
-        dt: Duration,
     ) -> StateReturn<Self::State, Self::StateResult>
     where
         Self::State: std::marker::Sized;
@@ -109,12 +108,7 @@ impl<S, R> StateMachine<S, R> {
         while !self.states.is_empty() {
             let (transition, transition_update) = {
                 let top_mode = self.states.last_mut().unwrap();
-                top_mode.update(
-                    ctx,
-                    &mut self.state,
-                    &self.pop_result,
-                    Duration::from_millis(ctx.frame_time_ms as u64),
-                )
+                top_mode.update(ctx, &mut self.state, &self.pop_result)
             };
 
             self.pop_result = None;

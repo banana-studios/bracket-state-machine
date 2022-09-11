@@ -1,4 +1,4 @@
-use std::{fmt::format, time::Duration};
+use std::fmt::format;
 
 use bracket_lib::prelude::*;
 use bracket_state_machine::prelude::*;
@@ -28,7 +28,6 @@ impl State for TitleState {
         term: &mut BTerm,
         state: &mut Self::State,
         _pop_result: &Option<Self::StateResult>,
-        dt: Duration,
     ) -> TransitionResult {
         if let Some(key) = term.key {
             match key {
@@ -101,7 +100,6 @@ impl State for PausedState {
         term: &mut BTerm,
         state: &mut Self::State,
         _pop_result: &Option<ModeResult>,
-        _dt: Duration,
     ) -> TransitionResult {
         if let Some(key) = term.key {
             if key == VirtualKeyCode::Space {
