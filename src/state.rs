@@ -2,7 +2,7 @@ use bracket_lib::prelude::*;
 use std::time::Duration;
 
 pub type StateTransition<S, R> = Transition<S, R>;
-type UpdateReturn<S, R> = (StateTransition<S, R>, TransitionControl);
+pub type StateReturn<S, R> = (StateTransition<S, R>, TransitionControl);
 
 pub trait State {
     type State: ?Sized;
@@ -15,7 +15,7 @@ pub trait State {
         state: &mut Self::State,
         pop_result: &Option<Self::StateResult>,
         dt: Duration,
-    ) -> UpdateReturn<Self::State, Self::StateResult>
+    ) -> StateReturn<Self::State, Self::StateResult>
     where
         Self::State: std::marker::Sized,
         Self::StateResult: std::marker::Sized;
