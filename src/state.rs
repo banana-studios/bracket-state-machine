@@ -159,7 +159,6 @@ impl<S, R> StateMachine<S, R> {
                 self.clear_consoles(ctx);
 
                 for mode in self.states.iter_mut().skip(draw_from).take(top) {
-                    println!("rendering mode");
                     mode.render(ctx, &mut self.state, false);
                 }
 
