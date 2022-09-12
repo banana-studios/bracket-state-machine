@@ -1,11 +1,10 @@
 use bracket_lib::prelude::*;
-use std::time::Duration;
 
 pub type StateTransition<S, R> = Transition<S, R>;
 pub type StateReturn<S, R> = (StateTransition<S, R>, TransitionControl);
 
 pub trait State {
-    type State: ?Sized;
+    type State: Sized;
     type StateResult;
 
     #[must_use = "it may trigger a state change"]
@@ -14,9 +13,7 @@ pub trait State {
         term: &mut BTerm,
         state: &mut Self::State,
         pop_result: &Option<Self::StateResult>,
-    ) -> StateReturn<Self::State, Self::StateResult>
-    where
-        Self::State: std::marker::Sized;
+    ) -> StateReturn<Self::State, Self::StateResult>;
 
     fn render(&mut self, term: &mut BTerm, state: &mut Self::State, active: bool);
 
@@ -35,6 +32,7 @@ pub trait State {
         true
     }
 
+    #[inline]
     fn boxed(self) -> Box<dyn State<State = Self::State, StateResult = Self::StateResult>>
     where
         Self: Sized + 'static,
@@ -74,30 +72,47 @@ pub enum TransitionControl {
     WaitForEvent,
 }
 
+#[allow(clippy::type_complexity)]
 pub struct StateMachine<S, R> {
     state: S,
     wait_for_event: bool,
     pop_result: Option<R>,
     active_mouse_pos: Point,
     states: Vec<Box<dyn State<State = S, StateResult = R>>>,
+    global_tick_fn: Option<Box<dyn FnMut(&mut BTerm, &mut S)>>,
 }
 
 impl<S, R> StateMachine<S, R> {
     // TODO implement From<State>
     /// creates a state machine with an initial state
-    pub fn new<T: State<State = S, StateResult = R> + 'static>(
+    pub fn new<F, T: State<State = S, StateResult = R> + 'static>(
         system_state: S,
         init_state: T,
     ) -> Self {
         StateMachine {
             pop_result: None,
             state: system_state,
+            global_tick_fn: None,
             wait_for_event: false,
             active_mouse_pos: Point::zero(),
             states: vec![Box::new(init_state)],
         }
     }
 
+    /// Set a function to be called every tick, before the current state's `update` function.
+    /// This tick fn will run even if the state machine is waiting for an event.
+    pub fn add_global_tick_fn<F>(&mut self, global_tick_fn: F)
+    where
+        F: FnMut(&mut BTerm, &mut S) + 'static + Sized,
+    {
+        self.global_tick_fn = Some(Box::new(global_tick_fn));
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Internals
+//////////////////////////////////////////////////////////////////////////////
+impl<S, R> StateMachine<S, R> {
     fn clear_consoles(&mut self, term: &mut BTerm) {
         if let Some(top_state) = self.states.last_mut() {
             top_state.clear(&self.state, term);
@@ -169,6 +184,11 @@ impl<S: 'static, R: 'static> GameState for StateMachine<S, R> {
     fn tick(&mut self, ctx: &mut BTerm) {
         if ctx.quitting {
             ctx.quit();
+        }
+
+        // Global tick fn ticks every frame no matter if the state machine is waiting for an event.
+        if let Some(func) = &mut self.global_tick_fn {
+            func(ctx, &mut self.state);
         }
 
         if self.wait_for_event {
