@@ -19,7 +19,7 @@ pub trait State {
 
     #[allow(unused_variables)]
     #[inline]
-    fn clear(&self, state: &Self::State, term: &mut BTerm) {
+    fn clear(&self, term: &mut BTerm, state: &Self::State) {
         BACKEND_INTERNAL
             .lock()
             .consoles
@@ -28,7 +28,7 @@ pub trait State {
     }
 
     #[inline]
-    fn is_transparent(&self) -> bool {
+    fn draw_behind(&self) -> bool {
         true
     }
 
@@ -115,7 +115,7 @@ impl<S, R> StateMachine<S, R> {
 impl<S, R> StateMachine<S, R> {
     fn clear_consoles(&mut self, term: &mut BTerm) {
         if let Some(top_state) = self.states.last_mut() {
-            top_state.clear(&self.state, term);
+            top_state.clear(term, &self.state);
         }
     }
 
@@ -151,15 +151,15 @@ impl<S, R> StateMachine<S, R> {
                 let draw_from = self
                     .states
                     .iter()
-                    .rposition(|mode| !mode.is_transparent())
+                    .rposition(|mode| !mode.draw_behind())
                     .unwrap_or(0);
 
                 let top = self.states.len().saturating_sub(1);
 
                 self.clear_consoles(ctx);
 
-                // Draw non-top modes with `active` set to `false`.
-                for mode in self.states.iter_mut().skip(usize::max(draw_from, 1)) {
+                for mode in self.states.iter_mut().skip(draw_from).take(top) {
+                    println!("rendering mode");
                     mode.render(ctx, &mut self.state, false);
                 }
 

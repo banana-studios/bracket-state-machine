@@ -70,16 +70,8 @@ impl State for TitleState {
         term.print(1, 6, format!("State: {:?}", state));
     }
 
-    fn clear(&self, _state: &Self::State, _term: &mut BTerm) {
-        BACKEND_INTERNAL
-            .lock()
-            .consoles
-            .iter_mut()
-            .for_each(|c| c.console.cls());
-    }
-
-    fn is_transparent(&self) -> bool {
-        true
+    fn draw_behind(&self) -> bool {
+        false
     }
 }
 
@@ -115,6 +107,10 @@ impl State for PausedState {
 
     fn render(&mut self, term: &mut BTerm, state: &mut Self::State, active: bool) {
         term.print_centered(0, format!("PAUSED {:?}", state));
+    }
+
+    fn draw_behind(&self) -> bool {
+        true
     }
 }
 
