@@ -85,7 +85,7 @@ pub struct StateMachine<S, R> {
 impl<S, R> StateMachine<S, R> {
     // TODO implement From<State>
     /// creates a state machine with an initial state
-    pub fn new<F, T: State<State = S, StateResult = R> + 'static>(
+    pub fn new<T: State<State = S, StateResult = R> + 'static>(
         system_state: S,
         init_state: T,
     ) -> Self {
