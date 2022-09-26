@@ -75,13 +75,8 @@ pub enum TransitionControl {
 #[allow(clippy::type_complexity)]
 pub struct StateMachine<S, R> {
     pub state: S,
-    pub wait_for_event: bool,
     pub pop_result: Option<R>,
-    pub active_mouse_pos: Point,
     pub states: Vec<Box<dyn State<State = S, StateResult = R>>>,
-
-    #[cfg(not(feature = "self-logic"))]
-    global_tick_fn: Option<Box<dyn FnMut(&mut BTerm, &mut S)>>,
 }
 
 impl<S, R> StateMachine<S, R> {
@@ -94,23 +89,8 @@ impl<S, R> StateMachine<S, R> {
         StateMachine {
             pop_result: None,
             state: system_state,
-            wait_for_event: false,
-            active_mouse_pos: Point::zero(),
             states: vec![Box::new(init_state)],
-
-            #[cfg(not(feature = "self-logic"))]
-            global_tick_fn: None,
         }
-    }
-
-    /// Set a function to be called every tick, before the current state's `update` function.
-    /// This tick fn will run even if the state machine is waiting for an event.
-    #[cfg(not(feature = "self-logic"))]
-    pub fn add_global_tick_fn<F>(&mut self, global_tick_fn: F)
-    where
-        F: FnMut(&mut BTerm, &mut S) + 'static + Sized,
-    {
-        self.global_tick_fn = Some(Box::new(global_tick_fn));
     }
 }
 
@@ -124,7 +104,7 @@ impl<S, R> StateMachine<S, R> {
         }
     }
 
-    pub fn tick(&mut self, ctx: &mut BTerm) -> RunControl {
+    pub fn update(&mut self, ctx: &mut BTerm) -> RunControl {
         while !self.states.is_empty() {
             let (transition, transition_update) = {
                 let top_mode = self.states.last_mut().unwrap();
@@ -181,42 +161,5 @@ impl<S, R> StateMachine<S, R> {
         }
 
         RunControl::Quit
-    }
-}
-
-#[cfg(not(feature = "self-logic"))]
-impl<S: 'static, R: 'static> GameState for StateMachine<S, R> {
-    fn tick(&mut self, ctx: &mut BTerm) {
-        if ctx.quitting {
-            ctx.quit();
-        }
-
-        // Global tick fn ticks every frame no matter if the state machine is waiting for an event.
-        if let Some(func) = &mut self.global_tick_fn {
-            func(ctx, &mut self.state);
-        }
-
-        if self.wait_for_event {
-            let new_mouse = ctx.mouse_point();
-
-            // Handle Keys & Mouse Clicks
-            if ctx.key.is_some() || ctx.left_click {
-                self.wait_for_event = false;
-            }
-
-            // Handle Mouse Movement
-            if new_mouse != self.active_mouse_pos {
-                self.wait_for_event = false;
-                self.active_mouse_pos = new_mouse;
-            }
-        } else {
-            self.active_mouse_pos = ctx.mouse_point();
-
-            match self.tick(ctx) {
-                RunControl::Update => {}
-                RunControl::Quit => ctx.quit(),
-                RunControl::WaitForEvent => self.wait_for_event = true,
-            }
-        }
     }
 }
