@@ -74,7 +74,6 @@ pub enum TransitionControl {
 
 #[allow(clippy::type_complexity)]
 pub struct StateMachine<S, R> {
-    pub state: S,
     pub pop_result: Option<R>,
     pub states: Vec<Box<dyn State<State = S, StateResult = R>>>,
 }
@@ -82,13 +81,9 @@ pub struct StateMachine<S, R> {
 impl<S, R> StateMachine<S, R> {
     // TODO implement From<State>
     /// creates a state machine with an initial state
-    pub fn new<T: State<State = S, StateResult = R> + 'static>(
-        system_state: S,
-        init_state: T,
-    ) -> Self {
+    pub fn new<T: State<State = S, StateResult = R> + 'static>(init_state: T) -> Self {
         StateMachine {
             pop_result: None,
-            state: system_state,
             states: vec![Box::new(init_state)],
         }
     }
@@ -98,17 +93,17 @@ impl<S, R> StateMachine<S, R> {
 // Internals
 //////////////////////////////////////////////////////////////////////////////
 impl<S, R> StateMachine<S, R> {
-    fn clear_consoles(&mut self, term: &mut BTerm) {
+    fn clear_consoles(&mut self, state: &mut S, term: &mut BTerm) {
         if let Some(top_state) = self.states.last_mut() {
-            top_state.clear(term, &self.state);
+            top_state.clear(term, state);
         }
     }
 
-    pub fn update(&mut self, ctx: &mut BTerm) -> RunControl {
+    pub fn update(&mut self, state: &mut S, ctx: &mut BTerm) -> RunControl {
         while !self.states.is_empty() {
             let (transition, transition_update) = {
                 let top_mode = self.states.last_mut().unwrap();
-                top_mode.update(ctx, &mut self.state, &self.pop_result)
+                top_mode.update(ctx, state, &self.pop_result)
             };
 
             self.pop_result = None;
@@ -141,14 +136,14 @@ impl<S, R> StateMachine<S, R> {
 
                 let top = self.states.len().saturating_sub(1);
 
-                self.clear_consoles(ctx);
+                self.clear_consoles(state, ctx);
 
                 for mode in self.states.iter_mut().skip(draw_from).take(top) {
-                    mode.render(ctx, &mut self.state, false);
+                    mode.render(ctx, state, false);
                 }
 
                 // Draw top mode with `active` set to `true`.
-                self.states[top].render(ctx, &mut self.state, true);
+                self.states[top].render(ctx, state, true);
 
                 render_draw_buffer(ctx).expect("Render draw buffer error");
             }
