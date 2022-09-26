@@ -117,7 +117,6 @@ impl<S, R> StateMachine<S, R> {
 //////////////////////////////////////////////////////////////////////////////
 // Internals
 //////////////////////////////////////////////////////////////////////////////
-#[cfg(not(feature = "self-logic"))]
 impl<S, R> StateMachine<S, R> {
     fn clear_consoles(&mut self, term: &mut BTerm) {
         if let Some(top_state) = self.states.last_mut() {
@@ -125,7 +124,7 @@ impl<S, R> StateMachine<S, R> {
         }
     }
 
-    fn internal_tick(&mut self, ctx: &mut BTerm) -> RunControl {
+    pub fn tick(&mut self, ctx: &mut BTerm) -> RunControl {
         while !self.states.is_empty() {
             let (transition, transition_update) = {
                 let top_mode = self.states.last_mut().unwrap();
@@ -213,7 +212,7 @@ impl<S: 'static, R: 'static> GameState for StateMachine<S, R> {
         } else {
             self.active_mouse_pos = ctx.mouse_point();
 
-            match self.internal_tick(ctx) {
+            match self.tick(ctx) {
                 RunControl::Update => {}
                 RunControl::Quit => ctx.quit(),
                 RunControl::WaitForEvent => self.wait_for_event = true,
