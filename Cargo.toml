@@ -11,11 +11,13 @@ publish     = true
 version     = "0.1.0"
 
 [features]
-crssterm = ["bracket-lib/crossterm"]
-curses   = ["bracket-lib/curses"]
-opengl   = ["bracket-lib/opengl"]
-serde    = ["bracket-lib/serde"]
-threaded = ["bracket-lib/threaded"]
+self-logic = []
+
+crossterm = ["bracket-lib/crossterm"]
+curses    = ["bracket-lib/curses"]
+opengl    = ["bracket-lib/opengl"]
+serde     = ["bracket-lib/serde"]
+threaded  = ["bracket-lib/threaded"]
 
 [dependencies]
 bracket-lib = { git = "https://github.com/lecoqjacob/bracket-lib", branch = "custom" }

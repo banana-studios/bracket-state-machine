@@ -74,11 +74,13 @@ pub enum TransitionControl {
 
 #[allow(clippy::type_complexity)]
 pub struct StateMachine<S, R> {
-    state: S,
-    wait_for_event: bool,
-    pop_result: Option<R>,
-    active_mouse_pos: Point,
-    states: Vec<Box<dyn State<State = S, StateResult = R>>>,
+    pub state: S,
+    pub wait_for_event: bool,
+    pub pop_result: Option<R>,
+    pub active_mouse_pos: Point,
+    pub states: Vec<Box<dyn State<State = S, StateResult = R>>>,
+
+    #[cfg(not(feature = "self-logic"))]
     global_tick_fn: Option<Box<dyn FnMut(&mut BTerm, &mut S)>>,
 }
 
@@ -92,15 +94,18 @@ impl<S, R> StateMachine<S, R> {
         StateMachine {
             pop_result: None,
             state: system_state,
-            global_tick_fn: None,
             wait_for_event: false,
             active_mouse_pos: Point::zero(),
             states: vec![Box::new(init_state)],
+
+            #[cfg(not(feature = "self-logic"))]
+            global_tick_fn: None,
         }
     }
 
     /// Set a function to be called every tick, before the current state's `update` function.
     /// This tick fn will run even if the state machine is waiting for an event.
+    #[cfg(not(feature = "self-logic"))]
     pub fn add_global_tick_fn<F>(&mut self, global_tick_fn: F)
     where
         F: FnMut(&mut BTerm, &mut S) + 'static + Sized,
@@ -112,6 +117,7 @@ impl<S, R> StateMachine<S, R> {
 //////////////////////////////////////////////////////////////////////////////
 // Internals
 //////////////////////////////////////////////////////////////////////////////
+#[cfg(not(feature = "self-logic"))]
 impl<S, R> StateMachine<S, R> {
     fn clear_consoles(&mut self, term: &mut BTerm) {
         if let Some(top_state) = self.states.last_mut() {
@@ -179,6 +185,7 @@ impl<S, R> StateMachine<S, R> {
     }
 }
 
+#[cfg(not(feature = "self-logic"))]
 impl<S: 'static, R: 'static> GameState for StateMachine<S, R> {
     fn tick(&mut self, ctx: &mut BTerm) {
         if ctx.quitting {
